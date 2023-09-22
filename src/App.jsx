@@ -6,6 +6,7 @@ import { useReducer } from "react";
 import { tareaReducer } from "./reducers/tareaReducer";
 import { useState } from "react";
 import { useEffect } from "react";
+import Swal from "sweetalert2";
 export const App = () => {
     const init=()=>{
         return JSON.parse(localStorage.getItem("tareas"))||[]
@@ -21,16 +22,24 @@ export const App = () => {
     }
     const handelSubmit=(evento)=>{
         evento.preventDefault();
-        const tareanueva={
-            id: new Date().getTime(),
-            descripcion: descripcion,
-            realizado: false
+        if(descripcion){
+            const tareanueva={
+                id: new Date().getTime(),
+                descripcion: descripcion,
+                realizado: false
+            }
+            const action={
+                type:"agregar",
+                payload: tareanueva
+            }
+            dispatch(action);
+        }else{
+            Swal.fire(
+                'No ingresaste nada Idiota',
+                'Ingresa algo!!!!',
+                'error'
+            )
         }
-        const action={
-            type:"agregar",
-            payload: tareanueva
-        }
-        dispatch(action);
         setDescripcion("")
     };
     const handleCambiar=(id)=>{
@@ -40,10 +49,27 @@ export const App = () => {
         })
     }
     const handleEliminar=(id)=>{
-        dispatch({
-            type: "borrar",
-            payload: id
-        })
+        Swal.fire({
+            title: 'Estas Seguro de Borrar?',
+            text: "Una vez eliminado no recuperaras lo eliminado!!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Si, borralo!'
+            }).then((result) => {
+            if (result.isConfirmed) {
+                dispatch({
+                    type: "borrar",
+                    payload: id
+                })
+                Swal.fire(
+                'Deleted!',
+                'Your file has been deleted.',
+                'success'
+                )
+            }
+            })
     }
     let terminadas=0
     for (let i = 0; i < state.length; i++) {
@@ -53,6 +79,9 @@ export const App = () => {
         
     }
     let porcentaje=terminadas/state.length
+    if (!porcentaje) {
+        porcentaje=0;
+    }
     return (
         <>
             <Header/>
